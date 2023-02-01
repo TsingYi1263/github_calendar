@@ -1,53 +1,32 @@
 # -*- coding: UTF-8 -*-
 import requests
 import re
-import json
 from http.server import BaseHTTPRequestHandler
-from bs4 import BeautifulSoup
+import json
 
-def github_json(user,repo,branch):
-    if user =='':
-        result = 'The user cannot be none!'
-    else:
-        try:
-            if repo =='':
-                repo = 'friends'
-            if branch =='':
-                branch = 'master'
-            requests_path = 'https://github.com/' + user + '/' +repo + '/blob/'+branch+'/friendlist.json'
-            r = requests.get(requests_path)
-            r.encoding = 'utf-8'
-            gitpage = r.text
-            soup = BeautifulSoup(gitpage, 'html.parser')
-            main_content = soup.find('td',id = 'LC1').text
-            result = json.loads(main_content)
-        except:
-            result = 'Incorrect user parameter!Please check!'
-    return result
+def list_split(items, n):
+    return [items[i:i + n] for i in range(0, len(items), n)]
+
+def getdata(name):
+    gitpage = requests.get("https://github.com/" + name)
+    data = re.findall('data-date="(.*?)" data-level="\d+" rx="\d+" ry="\d+">(.*?) contribution',
+                      gitpage.text)
+    datalist = [{"date": _[0], "count": 0 if _[1] == 'No' else int(_[1])} for _ in data]
+    datalistsplit = list_split(datalist, 7)
+    returndata = {
+        "total": sum([_["count"] for _ in datalist]),
+        "contributions": datalistsplit
+    }
+    return returndata
 
 class handler(BaseHTTPRequestHandler):
     def do_GET(self):
         path = self.path
-        path = path.replace("'", '"')
-        repo_reg = re.compile(r'repo="(.*?)"')
-        user_reg = re.compile(r'user="(.*?)"')
-        branch_reg = re.compile(r'branch="(.*?)"')
-        if user_reg.findall(path):
-            user = user_reg.findall(path)[0]
-        else:
-            user = ''
-        if repo_reg.findall(path):
-            repo = repo_reg.findall(path)[0]
-        else:
-            repo = 'friends'
-        if branch_reg.findall(path):
-            branch = branch_reg.findall(path)[0]
-        else:
-            branch = 'master'
-        data = github_json(user,repo,branch)
+        user = path.split('?')[1]
+        data = getdata(user)
         self.send_response(200)
         self.send_header('Access-Control-Allow-Origin', '*')
         self.send_header('Content-type', 'application/json')
         self.end_headers()
-        self.wfile.write(json.dumps(data).encode())
+        self.wfile.write(json.dumps(data).encode('utf-8'))
         return
