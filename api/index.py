@@ -20,7 +20,9 @@ def getdata(name):
     return returndata
 
 class handler(BaseHTTPRequestHandler):
-    def data = getdata("TsingYi1220")
+    def do_GET(self):
+        path = self.path
+        data = getdata("TsingYi1220")
         self.send_response(200)
         self.send_header('Access-Control-Allow-Origin', '*')
         self.send_header('Content-type', 'application/json')
