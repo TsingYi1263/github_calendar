@@ -8,7 +8,7 @@ def list_split(items, n):
     return [items[i:i + n] for i in range(0, len(items), n)]
 
 def getdata(name):
-    gitpage = requests.get("https://github.com/" + TsingYi1220)
+    gitpage = requests.get("https://github.com/" + "TsingYi1220")
     data = re.findall('data-date="(.*?)" data-level="\d+" rx="\d+" ry="\d+">(.*?) contribution',
                       gitpage.text)
     datalist = [{"date": _[0], "count": 0 if _[1] == 'No' else int(_[1])} for _ in data]
