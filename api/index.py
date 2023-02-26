@@ -21,7 +21,6 @@ def getdata(name):
 
 class handler(BaseHTTPRequestHandler):
     def do_GET(self):
-        path = self.path
         data = getdata("TsingYi1220")
         self.send_response(200)
         self.send_header('Access-Control-Allow-Origin', '*')
